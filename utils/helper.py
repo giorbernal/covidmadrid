@@ -3,7 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def loadData():
+# Load Data Functions
+
+def loadCovidData():
 	#url="https://datos.comunidad.madrid/catalogo/dataset/7da43feb-8d4d-47e0-abd5-3d022d29d09e/resource/b2a3a3f9-1f82-42c2-89c7-cbd3ef801412/download/covid19_tia_muni_y_distritos.csv"
 	#df = pd.read_csv(url, sep=';', encoding='latin-1')
 	df = pd.read_csv('datasets/covid19_tia_muni_y_distritos.csv', sep=';', encoding='latin-1')
@@ -12,6 +14,37 @@ def loadData():
 	df['tasa_incidencia_acumulada_total_float']=df['tasa_incidencia_acumulada_total'].str.replace(',','.').astype(float)
 	df.drop(labels=['municipio_distrito','tasa_incidencia_acumulada_total'],axis=1, inplace=True)
 	return df
+
+def loadPopulationData():
+    df_pop_muni = pd.read_csv('datasets/municipio_comunidad_madrid.csv', sep=';', encoding='latin-1')
+    df_pop_muni.drop(labels=['municipio_codigo', 'municipio_codigo_ine','nuts4_codigo', 'nuts4_nombre'], axis=1, inplace=True)
+    df_pop_muni['habitantes']=df_pop_muni.apply(lambda x: x[1]*x[2], axis=1)
+    df_pop_muni.columns=['municipio_distrito_clean', 'superficie_km2', 'densidad_por_km2', 'habitantes']
+
+    df_pop_dist = pd.read_csv('datasets/distritos_municipio_madrid.csv', sep=';', encoding='latin-1')
+    df_pop_dist.drop(labels=['distrito_codigo', 'municipio_codigo','municipio_nombre'], axis=1, inplace=True)
+    df_pop_dist['habitantes']=df_pop_dist.apply(lambda x: x[1]*x[2], axis=1)
+    df_pop_dist['municipio_distrito_clean']=df_pop_dist.apply(lambda x: 'Madrid-'+x[0].strip(), axis=1)
+    df_pop_dist.drop(labels=['distrito_nombre'], axis=1, inplace=True)
+
+    return pd.concat(objs=[df_pop_dist,df_pop_muni], axis=0, sort=True)
+
+def loadResData():
+    df_social = pd.read_csv('datasets/servicios_sociales_registro_centros.csv', sep=';', encoding='latin-1')
+    df_res = df_social[(df_social['sector']=='Personas mayores')][['plazas_autorizadas_numero','municipio_nombre']]
+    df_res_agg = df_res.groupby(by='municipio_nombre').sum()
+    df_res_agg.reset_index(inplace=True)
+    return df_res_agg
+
+def loadAgeData(age_th):
+    df_prof_pob_muni = pd.read_csv('datasets/cm.csv', sep=';', encoding='latin-1');
+    df_prof_pob_muni['th_ind']=df_prof_pob_muni.apply(lambda x: True if (int(x[3].split()[1]))>=age_th else False, axis=1)
+    df_pob_muni_older_than_th=df_prof_pob_muni[df_prof_pob_muni['th_ind']==True].drop(labels=['municipio_codigo', 'sexo','rango_edad','th_ind'], axis=1, inplace=False)
+    df_pob_muni_older_than_th_agg = df_pob_muni_older_than_th.groupby(by='municipio_nombre').sum()
+    df_pob_muni_older_than_th_agg.reset_index(inplace=True)
+    return df_pob_muni_older_than_th_agg
+
+# Graph functions
 
 def comparePlaces(df, places):
     maxDate = df['fecha_informe'].unique().max()
@@ -58,4 +91,11 @@ def plotPlaces(df, places):
             index+=2
         except:
             print('Error en ' + p + '!!')
+
+def showPopulationAgeProfile(df, city):
+    plt.figure(figsize=(20,7))
+    df_ob=df[df['municipio_nombre']==city]
+    sns.barplot(data=df_ob, x='rango_edad',y='poblacion_empadronada', hue='sexo')
+    plt.xticks(rotation=45)
+
 
