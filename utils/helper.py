@@ -83,7 +83,17 @@ def comparePlaces(df, places):
     plt.ylabel('Casos/100000 hab.')
     plt.xticks(rotation=90)
 
-def plotPlaces(df, places):
+def aggregate(x,y,group_factor):
+    d=pd.DataFrame(data={'x':x,'y':y})
+    d.reset_index(inplace=True)
+    d['gindex']=d.apply(lambda x: int(x[0]/group_factor)*group_factor, axis=1)
+    d_agg=d[['gindex','y']].groupby(by='gindex').sum()
+    d_agg.reset_index(inplace=True)
+    d_agg['x_red']=d_agg.apply(lambda x:d['x'].loc[x[0]],axis=1)
+    d_agg.drop(labels=['gindex'],axis=1,inplace=True)
+    return d_agg['x_red'],d_agg['y']
+    
+def plotPlaces(df, places, agg_factor=1):
     N = places.size
     plt.figure(figsize=(20,7*N))
     index=1
@@ -100,9 +110,12 @@ def plotPlaces(df, places):
             plt.plot(x,y,'r*-')
             plt.xticks(rotation=15) 
             #Incrementos por día
+            x_dia=np.array(x[1:])
+            y_dia=np.array(y[1:])-np.array(y[:-1])
+            x_dia_red, y_dia_red = aggregate(x_dia, y_dia, agg_factor)
             plt.subplot(N,2,index+1)
             plt.title(p + ' (Incremento por día)')
-            plt.bar(x[1:],np.array(y[1:])-np.array(y[:-1]), width=0.2)
+            plt.bar(x_dia_red,y_dia_red, width=0.2)
             plt.xticks(rotation=15)
             index+=2
         except:
