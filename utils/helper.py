@@ -7,7 +7,7 @@ import shapefile
 from shapely.geometry import Point # Point class
 from shapely.geometry import shape # shape() is a function to convert geo objects through the interface
 
-datasetmap={'muni':['datasets/covid19_tia_muni_y_distritos.csv','municipio_distrito'],
+__datasetmap__={'muni':['datasets/covid19_tia_muni_y_distritos.csv','municipio_distrito'],
             'zonas':['datasets/covid19_tia_zonas_basicas_salud.csv','zona_basica_salud']
 }
 
@@ -16,8 +16,8 @@ datasetmap={'muni':['datasets/covid19_tia_muni_y_distritos.csv','municipio_distr
 def loadCovidData(dataset='muni'):
     #url="https://datos.comunidad.madrid/catalogo/dataset/7da43feb-8d4d-47e0-abd5-3d022d29d09e/resource/b2a3a3f9-1f82-42c2-89c7-cbd3ef801412/download/covid19_tia_muni_y_distritos.csv"
     #df = pd.read_csv(url, sep=';', encoding='latin-1')
-    filename=datasetmap[dataset][0]
-    place_column=datasetmap[dataset][1]
+    filename=__datasetmap__[dataset][0]
+    place_column=__datasetmap__[dataset][1]
 
     if (dataset=='muni'):
         df = pd.read_csv('datasets/covid19_tia_muni_y_distritos.csv', sep=';', encoding='latin-1')
@@ -77,7 +77,7 @@ def mergeData(df_covid, df_pop, df_res, df_age_th):
 # Graph functions
 
 def comparePlaces(df, places, dataset='muni'):
-    place_column=datasetmap[dataset][1]
+    place_column=__datasetmap__[dataset][1]
     maxDate = df['fecha_informe'].unique().max()
     df_filtered = df[(df['fecha_informe']==maxDate) & df[place_column].isin(places)]
     
@@ -98,7 +98,7 @@ def comparePlaces(df, places, dataset='muni'):
     plt.ylabel('Casos/100000 hab.')
     plt.xticks(rotation=90)
 
-def aggregate(x,y,group_factor):
+def __aggregate__(x,y,group_factor):
     d=pd.DataFrame(data={'x':x,'y':y})
     d.reset_index(inplace=True)
     d['gindex']=d.apply(lambda x: int(x[0]/group_factor)*group_factor, axis=1)
@@ -107,9 +107,12 @@ def aggregate(x,y,group_factor):
     d_agg['x_red']=d_agg.apply(lambda x:d['x'].loc[x[0]],axis=1)
     d_agg.drop(labels=['gindex'],axis=1,inplace=True)
     return d_agg['x_red'],d_agg['y']
+
+def __litedate__(dates):
+    return [x[5:10] for x in dates]
     
 def plotPlaces(df, places, agg_factor=1, dataset='muni'):
-    place_column=datasetmap[dataset][1]
+    place_column=__datasetmap__[dataset][1]
     N = places.size
     plt.figure(figsize=(20,7*N))
     index=1
@@ -117,7 +120,7 @@ def plotPlaces(df, places, agg_factor=1, dataset='muni'):
         try:
             df_place = df[df[place_column]==p]
             df_place_sorted = df_place.sort_values(by=['fecha_informe'], ascending=1)
-            x=df_place_sorted['fecha_informe']
+            x=__litedate__(df_place_sorted['fecha_informe'])
             y=df_place_sorted['casos_confirmados_totales']            
             plt.subplot(N,2,index)
             # Total Acumulado
@@ -128,7 +131,7 @@ def plotPlaces(df, places, agg_factor=1, dataset='muni'):
             #Incrementos por día
             x_dia=np.array(x[1:])
             y_dia=np.array(y[1:])-np.array(y[:-1])
-            x_dia_red, y_dia_red = aggregate(x_dia, y_dia, agg_factor)
+            x_dia_red, y_dia_red = __aggregate__(x_dia, y_dia, agg_factor)
             plt.subplot(N,2,index+1)
             plt.title(p + ' (Incremento por día)')
             plt.bar(x_dia_red,y_dia_red, width=0.2)
@@ -163,8 +166,8 @@ def showPopulationAgeProfile(df, city):
 # Geoposition info
 
 #Based on this: https://gis.stackexchange.com/questions/250172/finding-out-if-coordinate-is-within-shapefile-shp-using-pyshp
-def checkPositions(points, shapeFile):
-    shp = shapefile.Reader(shapeFile) #open the shapefile
+def checkPositions(points):
+    shp = shapefile.Reader('datasets/zonas_basicas_salud/zonas_basicas_salud.shp') #open the shapefile
     all_shapes = shp.shapes() # get all the polygons
     all_records = shp.records()
     health_areas = []
@@ -221,5 +224,48 @@ sample_coordinates = {
 (438989.677702,4462575.86732),
 (439317.753589,4462558.68415),
 (440148.125394,4463336.63271)
+],
+    'Leganés':[
+(435284.151895,4464234.06677),
+(435462.765686,4464653.81474),
+(435841.722416,4464628.78217),
+(436397.268275,4464791.11698),
+(436019.863332,4464997.68391),
+(436749.377351,4465042.35231),
+(437122.727108,4465220.79075),
+(437017.322099,4465693.73423),
+(436666.965254,4465645.84173),
+(436889.756914,4466130.52698),
+(436862.244792,4466326.82517),
+(436498.011839,4466358.9403),
+(436206.491876,4466368.67063),
+(436191.805976,4465497.34953),
+(435833.957603,4465427.77017),
+(435334.334547,4464981.75935),
+(435035.784582,4465027.91063),
+(435149.031044,4465477.22229),
+(435036.08705,4465906.67375),
+(434921.710422,4466169.09447),
+(434587.519769,4466302.70781),
+(434221.895108,4466175.18618),
+(433601.625334,4466108.02074),
+(433402.22692,4465819.30091),
+(433639.659249,4465461.34348),
+(433840.404845,4465074.64834),
+(434461.200251,4465192.68033),
+(434326.990826,4465687.70631),
+(434686.391654,4465096.30376),
+(434894.491788,4464709.55614),
+(434717.423434,4464471.39987),
+(434445.046378,4464175.96005),
+(433817.322682,4464108.81925),
+(433437.3159,4464017.74174),
+(433733.721989,4463724.56074),
+(434315.062414,4463487.00332),
+(434899.267486,4463576.3621),
+(435324.279242,4463812.41527),
+(434676.803101,4463992.34705),
+(434876.764854,4464346.53809),
+(435284.151895,4464234.06677)
 ]
 }
