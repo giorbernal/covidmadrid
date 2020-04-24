@@ -107,8 +107,8 @@ def plotPlaces(df, places, agg_factor=1):
             # Total Acumulado
             plt.title(p + ' (Total Acumulado)')
             plt.ylim([(0.98)*min(y),(1.02)*max(y)])
-            plt.plot(x,y,'r*-')
-            plt.xticks(rotation=15) 
+            plt.plot(x[::agg_factor],y[::agg_factor],'r*-')
+            plt.xticks(rotation=45) 
             #Incrementos por día
             x_dia=np.array(x[1:])
             y_dia=np.array(y[1:])-np.array(y[:-1])
@@ -116,7 +116,7 @@ def plotPlaces(df, places, agg_factor=1):
             plt.subplot(N,2,index+1)
             plt.title(p + ' (Incremento por día)')
             plt.bar(x_dia_red,y_dia_red, width=0.2)
-            plt.xticks(rotation=15)
+            plt.xticks(rotation=45)
             index+=2
         except:
             print('Error en ' + p + '!!')
