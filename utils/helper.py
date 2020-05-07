@@ -19,10 +19,7 @@ def loadCovidData(dataset='muni'):
     filename=__datasetmap__[dataset][0]
     place_column=__datasetmap__[dataset][1]
 
-    if (dataset=='muni'):
-        df = pd.read_csv('datasets/covid19_tia_muni_y_distritos.csv', sep=';', encoding='latin-1')
-    else:
-        df = pd.read_csv('datasets/covid19_tia_zonas_basicas_salud.csv', sep=';', encoding='latin-1')
+    df = pd.read_csv(filename, sep=';', encoding='latin-1')
     # fixing data
     df['place_column_aux']=df[place_column].apply(lambda x: x.strip())
     df['tasa_incidencia_acumulada_total_float']=df['tasa_incidencia_acumulada_total'].str.replace(',','.').astype(float)
