@@ -35,13 +35,13 @@ def filterCovidData(df_covid):
     df_covid_filtered_simple = df_covid_filtered.drop(labels=['fecha_informe', 'casos_confirmados_ultimos_14dias','tasa_incidencia_acumulada_ultimos_14dias','codigo_geometria'], axis=1, inplace=False)
     return df_covid_filtered_simple
 
-def loadPopulationData():
-    df_pop_muni = pd.read_csv('datasets/municipio_comunidad_madrid.csv', sep=';', encoding='latin-1')
+def loadPopulationData(prefix):
+    df_pop_muni = pd.read_csv(prefix + 'datasets/municipio_comunidad_madrid.csv', sep=';', encoding='latin-1')
     df_pop_muni.drop(labels=['municipio_codigo', 'municipio_codigo_ine','nuts4_codigo', 'nuts4_nombre'], axis=1, inplace=True)
     df_pop_muni['habitantes']=df_pop_muni.apply(lambda x: x[1]*x[2], axis=1)
     df_pop_muni.columns=['municipio_distrito', 'superficie_km2', 'densidad_por_km2', 'habitantes']
 
-    df_pop_dist = pd.read_csv('datasets/distritos_municipio_madrid.csv', sep=';', encoding='latin-1')
+    df_pop_dist = pd.read_csv(prefix + 'datasets/distritos_municipio_madrid.csv', sep=';', encoding='latin-1')
     df_pop_dist.drop(labels=['distrito_codigo', 'municipio_codigo','municipio_nombre'], axis=1, inplace=True)
     df_pop_dist['habitantes']=df_pop_dist.apply(lambda x: x[1]*x[2], axis=1)
     df_pop_dist['municipio_distrito']=df_pop_dist.apply(lambda x: 'Madrid-'+x[0].strip(), axis=1)
@@ -49,16 +49,16 @@ def loadPopulationData():
 
     return pd.concat(objs=[df_pop_dist,df_pop_muni], axis=0, sort=True)
 
-def loadResData():
-    df_social = pd.read_csv('datasets/servicios_sociales_registro_centros.csv', sep=';', encoding='latin-1')
+def loadResData(prefix):
+    df_social = pd.read_csv(prefix + 'datasets/servicios_sociales_registro_centros.csv', sep=';', encoding='latin-1')
     df_res = df_social[(df_social['sector']=='Personas mayores')][['plazas_autorizadas_numero','municipio_nombre']]
     df_res_agg = df_res.groupby(by='municipio_nombre').sum()
     df_res_agg.reset_index(inplace=True)
     df_res_agg.columns=['municipio_distrito', 'plazas_autorizadas_numero']
     return df_res_agg
 
-def loadAgeData(age_th):
-    df_prof_pob_muni = pd.read_csv('datasets/cm.csv', sep=';', encoding='latin-1');
+def loadAgeData(age_th, prefix):
+    df_prof_pob_muni = pd.read_csv(prefix + 'datasets/cm.csv', sep=';', encoding='latin-1');
     df_prof_pob_muni['th_ind']=df_prof_pob_muni.apply(lambda x: True if (int(x[3].split()[1]))>=age_th else False, axis=1)
     df_pob_muni_older_than_th=df_prof_pob_muni[df_prof_pob_muni['th_ind']==True].drop(labels=['municipio_codigo', 'sexo','rango_edad','th_ind'], axis=1, inplace=False)
     df_pob_muni_older_than_th_agg = df_pob_muni_older_than_th.groupby(by='municipio_nombre').sum()
