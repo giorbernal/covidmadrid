@@ -6,6 +6,7 @@ import seaborn as sns
 import shapefile
 from shapely.geometry import Point # Point class
 from shapely.geometry import shape # shape() is a function to convert geo objects through the interface
+from pyproj import Proj, transform
 
 __datasetmap__={'muni':['datasets/covid19_tia_muni_y_distritos.csv','municipio_distrito'],
             'zonas':['datasets/covid19_tia_zonas_basicas_salud.csv','zona_basica_salud']
@@ -177,9 +178,15 @@ def showPopulationAgeProfile(df, city):
 
 # Geoposition info
 
+def transformCoordenate(x,y):
+    inProj = Proj(init='epsg:4326')
+    outProj = Proj(init='epsg:32630')
+    x_out,y_out = transform(inProj,outProj,x,y)
+    return x_out,y_out
+
 #Based on this: https://gis.stackexchange.com/questions/250172/finding-out-if-coordinate-is-within-shapefile-shp-using-pyshp
-def checkPositions(points):
-    shp = shapefile.Reader('datasets/zonas_basicas_salud/zonas_basicas_salud.shp') #open the shapefile
+def checkPositions(points, prefix=''):
+    shp = shapefile.Reader(prefix + 'datasets/zonas_basicas_salud/zonas_basicas_salud.shp') #open the shapefile
     all_shapes = shp.shapes() # get all the polygons
     all_records = shp.records()
     health_areas = []
