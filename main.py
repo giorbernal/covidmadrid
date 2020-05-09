@@ -70,8 +70,8 @@ else:
 
 if zones_enabled:
     st.subheader("Contagios por día en la zona seleccionada")
-    lat = st.text_input(label='Latitud', value=40.4165001)
-    long = st.text_input(label='Longitud', value=-3.7025599)
+    lat = st.slider('Latitud(º)', 39.863371338285305, 41.17038447781618, 40.4165001, 0.005)
+    long = st.slider('Longitud(º)', -4.592285156249999, -3.05419921875, -3.7025599, 0.005)
     long_tx, lat_tx = transformCoordenate(long, lat)
     zone = checkPositions([(long_tx,lat_tx)], prefix=prefix)
     if len(zone) > 0:
