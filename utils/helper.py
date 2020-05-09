@@ -130,7 +130,7 @@ def plotPlaces(df, places, agg_factor=1, dataset='muni', plot=True):
                 plt.title(p + ' (Total Acumulado)')
                 plt.ylim([(0.98)*min(y),(1.02)*max(y)])
                 plt.plot(x_red,y_red,'r*-')
-                plt.xticks(rotation=45)
+                plt.xticks(rotation=90)
             else:
                 df1 = pd.DataFrame(data={'municipio_distrito':([p]*len(x_red)),'fecha':x_red,'Contagios totales':y_red})
                 df1_total = pd.concat([df1_total,df1])
@@ -142,7 +142,7 @@ def plotPlaces(df, places, agg_factor=1, dataset='muni', plot=True):
                 plt.subplot(N,2,index+1)
                 plt.title(p + ' (Incremento por día)')
                 plt.bar(x_dia_red,y_dia_red, width=0.2)
-                plt.xticks(rotation=45)
+                plt.xticks(rotation=90)
                 index+=2
             else:
                 df2 = pd.DataFrame(data={'municipio_distrito':([p]*len(x_dia_red)),'fecha':x_dia_red,'Contagios diarios':y_dia_red})
