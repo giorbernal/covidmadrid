@@ -13,10 +13,10 @@ __datasetmap__={'muni':['datasets/covid19_tia_muni_y_distritos.csv','municipio_d
 
 # Load Data Functions
 
-def loadCovidData(dataset='muni'):
+def loadCovidData(dataset='muni', prefix=''):
     #url="https://datos.comunidad.madrid/catalogo/dataset/7da43feb-8d4d-47e0-abd5-3d022d29d09e/resource/b2a3a3f9-1f82-42c2-89c7-cbd3ef801412/download/covid19_tia_muni_y_distritos.csv"
     #df = pd.read_csv(url, sep=';', encoding='latin-1')
-    filename=__datasetmap__[dataset][0]
+    filename=prefix + __datasetmap__[dataset][0]
     place_column=__datasetmap__[dataset][1]
 
     df = pd.read_csv(filename, sep=';', encoding='latin-1')
@@ -108,7 +108,10 @@ def __aggregate__(x,y,group_factor):
 def __litedate__(dates):
     return [x[5:10] for x in dates]
     
-def plotPlaces(df, places, agg_factor=1, dataset='muni'):
+def plotPlaces(df, places, agg_factor=1, dataset='muni', plot=True):
+    if not plot:
+        df1_total = pd.DataFrame()
+        df2_total = pd.DataFrame()
     place_column=__datasetmap__[dataset][1]
     N = places.size
     plt.figure(figsize=(20,7*N))
@@ -118,24 +121,36 @@ def plotPlaces(df, places, agg_factor=1, dataset='muni'):
             df_place = df[df[place_column]==p]
             df_place_sorted = df_place.sort_values(by=['fecha_informe'], ascending=1)
             x=__litedate__(df_place_sorted['fecha_informe'])
-            y=df_place_sorted['casos_confirmados_totales']            
-            plt.subplot(N,2,index)
-            # Total Acumulado
-            plt.title(p + ' (Total Acumulado)')
-            plt.ylim([(0.98)*min(y),(1.02)*max(y)])
-            plt.plot(x[::agg_factor],y[::agg_factor],'r*-')
-            plt.xticks(rotation=45) 
+            y=df_place_sorted['casos_confirmados_totales']
+            x_red=x[::agg_factor]
+            y_red=y[::agg_factor]
+            if plot:
+                plt.subplot(N,2,index)
+                # Total Acumulado
+                plt.title(p + ' (Total Acumulado)')
+                plt.ylim([(0.98)*min(y),(1.02)*max(y)])
+                plt.plot(x_red,y_red,'r*-')
+                plt.xticks(rotation=45)
+            else:
+                df1 = pd.DataFrame(data={'municipio_distrito':([p]*len(x_red)),'fecha':x_red,'Contagios totales':y_red})
+                df1_total = pd.concat([df1_total,df1])
             #Incrementos por día
             x_dia=np.array(x[1:])
             y_dia=np.array(y[1:])-np.array(y[:-1])
             x_dia_red, y_dia_red = __aggregate__(x_dia, y_dia, agg_factor)
-            plt.subplot(N,2,index+1)
-            plt.title(p + ' (Incremento por día)')
-            plt.bar(x_dia_red,y_dia_red, width=0.2)
-            plt.xticks(rotation=45)
-            index+=2
+            if plot:
+                plt.subplot(N,2,index+1)
+                plt.title(p + ' (Incremento por día)')
+                plt.bar(x_dia_red,y_dia_red, width=0.2)
+                plt.xticks(rotation=45)
+                index+=2
+            else:
+                df2 = pd.DataFrame(data={'municipio_distrito':([p]*len(x_dia_red)),'fecha':x_dia_red,'Contagios diarios':y_dia_red})
+                df2_total = pd.concat([df2_total,df2])
         except:
             print('Error en ' + p + '!!')
+    if not plot:
+        return df1_total,df2_total
 
 def scatterPlaces(df, x_label, y_label, reg=False):
     if (reg):
