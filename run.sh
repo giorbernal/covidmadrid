@@ -3,8 +3,7 @@
 docker run \
 	--name=cm1 \
 	-p 8501:8501 \
-	-it \
-	-e FLAT_DOCKER=true \
+	-d \
 	--memory=1g \
 	--memory-swap=-1 \
 	giorbernal/covidmadrid
