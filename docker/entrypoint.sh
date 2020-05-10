@@ -1,10 +1,14 @@
 #!/bin/bash
 
-echo 'Initiating data loader daemon ...'
-/opt/app/getSourceData.sh &
-echo 'data loader daemon initiated!'
+. /opt/app/logger.sh
+clearLogs
 
-echo 'Initiating application'
+log 'Initiating data loader daemon ...'
+/opt/app/getSourceData.sh &
+log 'data loader daemon initiated!'
+
+log 'Initiating application'
+/opt/app/setup.sh
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 export APP_PATH='/opt/app/'
