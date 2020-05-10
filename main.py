@@ -1,11 +1,12 @@
 import sys
+import os
 import numpy as np
 import pandas as pd
 import altair as alt
 import streamlit as st
 from utils.helper import loadCovidData, plotPlaces, transformCoordenate, checkPositions
 
-prefix = '/Users/bernal/Documents/ext/GitRepos/covidmadrid/'
+prefix = os.environ['APP_PATH']
 
 if sys.version_info[0] < 3:
     reload(sys) # noqa: F821 pylint:disable=undefined-variable
