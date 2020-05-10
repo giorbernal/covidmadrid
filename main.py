@@ -12,7 +12,7 @@ if sys.version_info[0] < 3:
     reload(sys) # noqa: F821 pylint:disable=undefined-variable
     sys.setdefaultencoding("utf-8")
 
-#@st.cache
+@st.cache(ttl=7200)
 def get_data(dataset='muni'):
     df = loadCovidData(prefix=prefix, dataset=dataset)
     return df
@@ -63,6 +63,7 @@ places = st.sidebar.multiselect(
 )
 agg_factor = st.sidebar.slider("Agrupación de datos por N días:", 1, 7, 1)
 zones_enabled = st.sidebar.checkbox(label='¿Quieres ver evolución en tu zona?', value=False)
+st.sidebar.markdown('(Código fuente [aquí](https://github.com/giorbernal/covidmadrid))')
 
 if len(places) > 0:
     drawEvolution(df, np.array(places), agg_factor=agg_factor)

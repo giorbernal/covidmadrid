@@ -16,6 +16,7 @@ COPY utils/ /opt/app/utils/
 COPY datasets/ /opt/app/datasets/
 COPY main.py /opt/app
 COPY docker/entrypoint.sh /
+COPY docker/getSourceData.sh /opt/app
 
 # Streamlit application port
 EXPOSE 8501
