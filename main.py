@@ -59,7 +59,7 @@ df = get_data()
 # Sidebar Configuration
 st.sidebar.title('Configuración de la Visualización')
 places = st.sidebar.multiselect(
-    "Elija un municipio/distrito", list(df['municipio_distrito'].unique()), ['Madrid-Centro']
+    "Elija un municipio/distrito", list(np.sort(df['municipio_distrito'].unique())), ['Madrid-Centro']
 )
 agg_factor = st.sidebar.slider("Agrupación de datos por N días:", 1, 7, 1)
 zones_enabled = st.sidebar.checkbox(label='¿Quieres ver evolución en tu zona?', value=False)
