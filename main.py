@@ -4,9 +4,11 @@ import numpy as np
 import pandas as pd
 import altair as alt
 import streamlit as st
-from utils.helper import loadCovidData, plotPlaces, transformCoordenate, checkPositions
+from utils.helper import loadCovidData, plotPlaces, transformCoordenate, checkPositions, sample_coordinates
 
 prefix = os.environ['APP_PATH']
+
+modes = ['Municipo/Distrito','Mapa','Detalle']
 
 if sys.version_info[0] < 3:
     reload(sys) # noqa: F821 pylint:disable=undefined-variable
@@ -58,19 +60,20 @@ df = get_data()
 
 # Sidebar Configuration
 st.sidebar.title('Configuración de la Visualización')
-places = st.sidebar.multiselect(
-    "Elija un municipio/distrito", list(np.sort(df['municipio_distrito'].unique())), ['Madrid-Centro']
-)
 agg_factor = st.sidebar.slider("Agrupación de datos por N días:", 1, 7, 1)
-zones_enabled = st.sidebar.checkbox(label='¿Quieres ver evolución en tu zona?', value=False)
-st.sidebar.markdown('([GitHub](https://github.com/giorbernal/covidmadrid))')
 
-if len(places) > 0:
-    drawEvolution(df, np.array(places), agg_factor=agg_factor)
-else:
-    st.warning("Seleccione al menos un municipio/distrito o active la visualización por zona")
+mode = st.sidebar.selectbox("Elija modo de visualizacion:", modes)
 
-if zones_enabled:
+if mode == modes[0]:
+    places = st.multiselect(
+        "Elija un municipio/distrito", list(np.sort(df['municipio_distrito'].unique())), ['Madrid-Centro']
+    )
+    if len(places) > 0:
+        drawEvolution(df, np.array(places), agg_factor=agg_factor)
+    else:
+        st.warning("Seleccione al menos un municipio/distrito")
+
+if mode == modes[1]:
     st.subheader("Contagios por día en la zona seleccionada")
     lat = st.slider('Latitud(º)', 39.863371338285305, 41.17038447781618, 40.4165001, 0.005)
     long = st.slider('Longitud(º)', -4.592285156249999, -3.05419921875, -3.7025599, 0.005)
@@ -85,3 +88,11 @@ if zones_enabled:
         drawEvolution(df_zones, np.array(zone), agg_factor, dataset='zonas')
     else:
         st.error('Zona desconocida o fuera de la Comunidad de Madrid!')
+
+if mode == modes[2]:
+    city_detail = st.selectbox('Seleccione Municipio para observar el detalle:', list(sample_coordinates.keys()))
+    zones = checkPositions(sample_coordinates[city_detail], prefix=prefix)
+    df_zones = get_data(dataset='zonas')
+    drawEvolution(df_zones, np.array(zones), agg_factor, dataset='zonas')
+
+st.sidebar.markdown('([GitHub](https://github.com/giorbernal/covidmadrid))')
