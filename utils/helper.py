@@ -12,6 +12,21 @@ __datasetmap__={'muni':['datasets/covid19_tia_muni_y_distritos.csv','municipio_d
             'zonas':['datasets/covid19_tia_zonas_basicas_salud.csv','zona_basica_salud']
 }
 
+top_places = np.array(['Madrid-Retiro', 'Madrid-Salamanca', 'Madrid-Centro',
+       'Madrid-Arganzuela', 'Madrid-Chamartín', 'Madrid-Tetuán',
+       'Madrid-Chamberí', 'Madrid-Fuencarral-El Pardo',
+       'Madrid-Moncloa-Aravaca', 'Madrid-Latina', 'Madrid-Carabanchel',
+       'Madrid-Usera', 'Madrid-Puente de Vallecas',
+       'Madrid-San Blas - Canillejas', 'Madrid-Barajas',
+       'Madrid-Moratalaz', 'Madrid-Ciudad Lineal', 'Madrid-Hortaleza',
+       'Madrid-Villaverde', 'Madrid-Villa de Vallecas',
+       'Madrid-Vicálvaro', 'Pozuelo de Alarcón', 'Alcorcón', 'Aranjuez',
+       'Coslada', 'Fuenlabrada', 'Pinto', 'Móstoles', 'Leganés', 'Parla',
+       'Boadilla del Monte', 'San Sebastián de los Reyes',
+       'Arganda del Rey', 'Collado Villalba', 'Valdemoro',
+       'Rivas-Vaciamadrid', 'Majadahonda', 'Alcobendas',
+       'Alcalá de Henares', 'Torrejón de Ardoz', 'Getafe'])
+
 # Load Data Functions
 
 def loadCovidData(dataset='muni', prefix=''):
