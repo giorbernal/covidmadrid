@@ -72,7 +72,7 @@ if mode == modes[0]:
 
     st.markdown('## Situación reciente en las zonas más poblados')
     last_days = st.slider("Casos acumulados en los últimos N días:", 1, 7, 1)
-    _, df_inc_top = plotPlaces(df, top_places, agg_factor=agg_factor, plot=False)
+    _, df_inc_top = plotPlaces(df, top_places, agg_factor=1, plot=False)
     dates_to_select = df_inc_top['fecha'].unique()[::-1][0:last_days]
     df_inc_top_filtered = df_inc_top[df_inc_top['fecha'].isin(dates_to_select)]
     df_inc_top_filtered_agg = df_inc_top_filtered.groupby(by='municipio_distrito').sum().reset_index()
