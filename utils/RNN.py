@@ -33,16 +33,9 @@ class RNN:
         self.model.compile(loss='mean_squared_error', optimizer='adam')
 
     def train(self, verbose=0):
-        history = self.model.fit(self.X_train, self.y_train, epochs=self.epochs, batch_size=1, validation_data=(self.X_train, self.y_train), verbose=verbose, shuffle=False)
-
-        # plot history
-        #plt.plot(history.history['loss'], label='train')
-        #plt.plot(history.history['val_loss'], label='test')
-        #plt.legend()
-
+        history = self.model.fit(self.X_train, self.y_train, epochs=self.epochs, batch_size=1, validation_data=(self.X_test, self.y_test), verbose=verbose, shuffle=False)
         score = self.model.evaluate(self.X_test, self.y_test, batch_size=4)
-        #print('score: ' + str(score))
-        return score
+        return history, score
 
     def getAllPredictions(self, verbose=0):
         y_pred = self.model.predict(np.reshape(self.X, (self.X.shape[0], 1, self.X.shape[1])), batch_size=1, verbose=verbose)
