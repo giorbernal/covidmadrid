@@ -1,4 +1,4 @@
-FROM python:3.8.2
+FROM python:3.7.7
 MAINTAINER "Gior Bernal"
 
 RUN pip install numpy && \
@@ -8,7 +8,10 @@ RUN pip install numpy && \
 	pip install streamlit && \
 	pip install pyshp && \
 	pip install shapely && \
-	pip install pyproj
+	pip install pyproj && \
+	pip install sklearn  && \
+	pip install tensorflow==1.13.1 && \
+	pip install Keras==2.2.4
 
 RUN ["mkdir", "opt/app"]
 
