@@ -8,6 +8,12 @@ from keras.models import Sequential
 from keras.layers import LSTM
 from keras.layers import Dense
 
+from utils.helper import plotPlaces
+
+def getPlaceSerie(df, place, agg_factor):
+    _, df_inc = plotPlaces(df, np.array([place]), agg_factor=agg_factor, plot=False)
+    serie = df_inc['Contagios diarios'].to_numpy()
+    return serie
 class RNN:
 
     def __init__(self, data, window_size=7, lstm_units=16, epochs=150):

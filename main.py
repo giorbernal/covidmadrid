@@ -2,9 +2,11 @@ import sys
 import os
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import altair as alt
 import streamlit as st
 from utils.helper import loadCovidData, plotPlaces, transformCoordenate, checkPositions, sample_coordinates, top_places
+from utils.RNN import RNN, getPlaceSerie
 
 prefix = os.environ['APP_PATH']
 
@@ -52,6 +54,38 @@ def drawEvolution(df, places, agg_factor, dataset='muni'):
      )
     st.altair_chart(chart, use_container_width=True)
 
+def handleSeriePrediction(df, place, agg_factor):
+    if st.checkbox("Análisis predictivo"):
+        serie = getPlaceSerie(df, place, agg_factor)
+        st.markdown("#### Parametros de la RNN")
+        window_size = st.number_input(label='window size (2-14)', min_value=2, max_value=14, value=7)
+        lstm_units = st.number_input(label='LSTM units (1-64)', min_value=1, max_value=64, value=8)
+        epochs = st.number_input(label='epochs (10-200)', min_value=10, max_value=200, value=150)
+
+        if st.button('Predicción'):
+            with st.spinner('Entrenando modelo ...'):
+                rnn = RNN(data=serie, window_size=window_size, lstm_units=lstm_units, epochs=epochs)
+                history, score = rnn.train(verbose=2)
+            st.success('Hecho!')
+
+            # plot history
+            st.markdown("#### Curvas de aprendizaje")
+            plt.plot(history.history['loss'], label='train')
+            plt.plot(history.history['val_loss'], label='test')
+            plt.legend()
+            st.pyplot()
+
+            st.markdown("#### Realidad Vs Modelo Predictivo")
+            y, y_pred = rnn.getAllPredictions()
+            plt.plot(y, 'b', label='Realidad')
+            plt.plot(y_pred, 'r', label='Modelo Predictivo')
+            plt.legend()
+            st.pyplot()
+            st.markdown("#### Predicción a 30 dias")
+            preds = rnn.predict(30)
+            plt.plot(preds)
+            st.pyplot()
+
 # Main Screen
 st.markdown('# Evolución de Covid-19 en la Comunidad de Madrid')
 
@@ -69,6 +103,7 @@ if mode == modes[0]:
     unique_place = 'Comunidad de Madrid'
     df_total['municipio_distrito'] = df_total.apply(lambda x: unique_place, axis=1)
     drawEvolution(df_total, np.array([unique_place]), agg_factor=agg_factor)
+    handleSeriePrediction(df_total, unique_place, agg_factor)
 
     st.markdown('## Situación reciente en las zonas más poblados')
     last_days = st.slider("Casos acumulados en los últimos N días:", 1, 7, 1)
@@ -91,13 +126,15 @@ elif mode == modes[1]:
     )
     if len(places) > 0:
         drawEvolution(df, np.array(places), agg_factor=agg_factor)
+        if (len(places)==1):
+            handleSeriePrediction(df, places[0], agg_factor)
     else:
         st.warning("Seleccione al menos un municipio/distrito")
 
 elif mode == modes[3]:
     st.markdown('## Contagios por día en la zona seleccionada')
-    lat = st.slider('Latitud(º)', 39.863371338285305, 41.17038447781618, 40.4165001, 0.005)
-    long = st.slider('Longitud(º)', -4.592285156249999, -3.05419921875, -3.7025599, 0.005)
+    lat = st.number_input('Latitud(º)', 39.863371338285305, 41.17038447781618, 40.4165001, 0.005)
+    long = st.number_input('Longitud(º)', -4.592285156249999, -3.05419921875, -3.7025599, 0.005)
     long_tx, lat_tx = transformCoordenate(long, lat)
     zone = checkPositions([(long_tx,lat_tx)], prefix=prefix)
     if len(zone) > 0:
