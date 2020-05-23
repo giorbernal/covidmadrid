@@ -10,8 +10,8 @@ from keras.layers import Dense
 
 from utils.helper import plotPlaces
 
-def getPlaceSerie(df, place, agg_factor):
-    _, df_inc = plotPlaces(df, np.array([place]), agg_factor=agg_factor, plot=False)
+def getPlaceSerie(df, place, agg_factor, dataset):
+    _, df_inc = plotPlaces(df, np.array([place]), agg_factor=agg_factor, dataset=dataset, plot=False)
     serie = df_inc['Contagios diarios'].to_numpy()
     return serie
 class RNN:
