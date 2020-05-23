@@ -23,8 +23,8 @@ def get_data(dataset='muni'):
 
 def drawEvolution(df, places, agg_factor, dataset='muni'):
     data_acc, data_day = plotPlaces(df, places, agg_factor=agg_factor, dataset=dataset, plot=False)
-    data_acc_pivoted = data_acc.pivot(index='fecha', columns='municipio_distrito', values='Contagios totales')
-    data_data_day_pivoted = data_day.pivot(index='fecha', columns='municipio_distrito', values='Contagios diarios')
+    data_acc_pivoted = data_acc.pivot(index='fecha_str', columns='municipio_distrito', values='Contagios totales')
+    data_data_day_pivoted = data_day.pivot(index='fecha_str', columns='municipio_distrito', values='Contagios diarios')
 
     st.markdown("### Contagios totales")
 
@@ -33,7 +33,7 @@ def drawEvolution(df, places, agg_factor, dataset='muni'):
         alt.Chart(data_acc)
             .mark_line()
             .encode(
-            x="fecha:N",
+            x="fecha:T",
             y="Contagios totales:Q",
             color="municipio_distrito:N",
         )
@@ -47,7 +47,7 @@ def drawEvolution(df, places, agg_factor, dataset='muni'):
          alt.Chart(data_day)
          .mark_line()
          .encode(
-             x="fecha:N",
+             x="fecha:T",
              y="Contagios diarios:Q",
              color="municipio_distrito:N",
          )

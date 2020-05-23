@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import datetime
 
 import shapefile
 from shapely.geometry import Point # Point class
@@ -123,7 +124,10 @@ def __aggregate__(x,y,group_factor):
 
 def __litedate__(dates):
     return [x[5:10] for x in dates]
-    
+
+def __litedateToDatetime__(dates):
+    return [datetime.datetime.strptime('2020/' + x, "%Y/%m/%d") for x in dates]
+
 def plotPlaces(df, places, agg_factor=1, dataset='muni', plot=True):
     if not plot:
         df1_total = pd.DataFrame()
@@ -137,31 +141,34 @@ def plotPlaces(df, places, agg_factor=1, dataset='muni', plot=True):
             df_place = df[df[place_column]==p]
             df_place_sorted = df_place.sort_values(by=['fecha_informe'], ascending=1)
             x=__litedate__(df_place_sorted['fecha_informe'])
+            x_date=__litedateToDatetime__(x)
             y=df_place_sorted['casos_confirmados_totales']
             x_red=x[::agg_factor]
             y_red=y[::agg_factor]
+            x_date_red = x_date[::agg_factor]
             if plot:
                 plt.subplot(N,2,index)
                 # Total Acumulado
                 plt.title(p + ' (Total Acumulado)')
                 plt.ylim([(0.98)*min(y),(1.02)*max(y)])
-                plt.plot(x_red,y_red,'r*-')
-                plt.xticks(rotation=90)
+                plt.plot(x_date_red,y_red,'r*-')
+                plt.xticks(rotation=15)
             else:
-                df1 = pd.DataFrame(data={'municipio_distrito':([p]*len(x_red)),'fecha':x_red,'Contagios totales':y_red})
+                df1 = pd.DataFrame(data={'municipio_distrito':([p]*len(x_red)),'fecha':x_date_red,'fecha_str':x_red,'Contagios totales':y_red})
                 df1_total = pd.concat([df1_total,df1])
             #Incrementos por día
             x_dia=np.array(x[1:])
             y_dia=np.array(y[1:])-np.array(y[:-1])
             x_dia_red, y_dia_red = __aggregate__(x_dia, y_dia, agg_factor)
+            x_date_dia_red = __litedateToDatetime__(x_dia_red)
             if plot:
                 plt.subplot(N,2,index+1)
                 plt.title(p + ' (Incremento por día)')
-                plt.bar(x_dia_red,y_dia_red, width=0.2)
-                plt.xticks(rotation=90)
+                plt.bar(x_date_dia_red,y_dia_red, width=0.2)
+                plt.xticks(rotation=15)
                 index+=2
             else:
-                df2 = pd.DataFrame(data={'municipio_distrito':([p]*len(x_dia_red)),'fecha':x_dia_red,'Contagios diarios':y_dia_red})
+                df2 = pd.DataFrame(data={'municipio_distrito':([p]*len(x_dia_red)),'fecha':x_date_dia_red,'fecha_str':x_dia_red,'Contagios diarios':y_dia_red})
                 df2_total = pd.concat([df2_total,df2])
         except:
             print('Error en ' + p + '!!')
