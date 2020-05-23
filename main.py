@@ -106,7 +106,7 @@ if mode == modes[0]:
     handleSeriePrediction(df_total, unique_place, agg_factor)
 
     st.markdown('## Situación reciente en las zonas más poblados')
-    last_days = st.slider("Casos acumulados en los últimos N días:", 1, 7, 1)
+    last_days = st.slider("Casos acumulados en los últimos días:", 1, 14, 1)
     _, df_inc_top = plotPlaces(df, top_places, agg_factor=1, plot=False)
     dates_to_select = df_inc_top['fecha'].unique()[::-1][0:last_days]
     df_inc_top_filtered = df_inc_top[df_inc_top['fecha'].isin(dates_to_select)]
