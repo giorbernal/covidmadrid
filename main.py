@@ -57,7 +57,7 @@ def drawEvolution(df, places, agg_factor, dataset='muni'):
 def handleSeriePrediction(df, place, agg_factor, dataset='muni'):
     if st.checkbox("Análisis predictivo"):
         serie = getPlaceSerie(df, place, agg_factor, dataset)
-        st.markdown("#### Parametros de la RNN")
+        st.markdown("#### Parámetros de la RNN")
         window_size = st.number_input(label='window size (2-14)', min_value=2, max_value=14, value=7)
         lstm_units = st.number_input(label='LSTM units (1-64)', min_value=1, max_value=64, value=8)
         epochs = st.number_input(label='epochs (10-200)', min_value=10, max_value=200, value=150)
