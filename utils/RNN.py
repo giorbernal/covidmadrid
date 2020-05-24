@@ -45,18 +45,18 @@ class RNN:
 
     def getAllPredictions(self, verbose=0):
         y_pred = self.model.predict(np.reshape(self.X, (self.X.shape[0], 1, self.X.shape[1])), batch_size=1, verbose=verbose)
-        return self.scaler.inverse_transform(self.y), self.scaler.inverse_transform(y_pred)
+        return self.scaler.inverse_transform(self.y), np.round(self.scaler.inverse_transform(y_pred))
 
     def predict(self, num_samples, verbose=0):
         predictions = []
         last_samples = self.serie_scaled[-self.window_size:].T
         for i in np.arange(num_samples):
-            prediction = self.model.predict(np.reshape(last_samples, (last_samples.shape[0], 1, last_samples.shape[1])), batch_size=1, verbose=verbose)[0][0]
+            prediction = np.round(self.scaler.inverse_transform(self.model.predict(np.reshape(last_samples, (last_samples.shape[0], 1, last_samples.shape[1])), batch_size=1, verbose=verbose).reshape(-1, 1)))[0][0]
             predictions.append(prediction)
             list = last_samples.tolist()[0]
-            list.append(prediction)
+            list.append(self.scaler.transform(prediction.reshape(-1,1))[0][0])
             last_samples = np.array(list)[-self.window_size:].reshape(1, self.window_size)
-        return self.scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
+        return np.array(predictions)
 
     def __getRNNDataset__(self, serie, group_size):
         df_serie = pd.DataFrame()
