@@ -45,6 +45,34 @@ def loadCovidData(dataset='muni', prefix=''):
     df.drop(labels=[], axis=1, inplace=True)
     return df
 
+def loadCovidDataSpain():
+    #url="https://datos.comunidad.madrid/catalogo/dataset/7da43feb-8d4d-47e0-abd5-3d022d29d09e/resource/b2a3a3f9-1f82-42c2-89c7-cbd3ef801412/download/covid19_tia_muni_y_distritos.csv"
+    #df = pd.read_csv(url, sep=';', encoding='latin-1')
+    df = pd.read_csv('../datasets/covid19_estado.csv', sep=',', encoding='latin-1')
+    # fixing data
+    df_madrid = df[df['CCAA'] == 'MD']
+    df_madrid['fecha'] = df_madrid['FECHA'].apply(lambda x: datetime.datetime.strptime(x, '%d/%m/%Y'))
+    df_madrid['fecha_str'] = df_madrid['fecha'].apply(lambda x: str(x.month).zfill(2) + "/" + str(x.day).zfill(2))
+    df_madrid['municipio_distrito'] = df_madrid['CCAA'].apply(lambda x: 'Reporte Madrid')
+    df_madrid_result = df_madrid[['municipio_distrito','fecha_str','PCR+']]
+    df_madrid_result.columns = ['municipio_distrito','fecha_informe','casos_confirmados_totales']
+    return df_madrid_result
+
+def getMadridTotalData(df_madrid, df_spain):
+    df_madrid_f = df_madrid[['municipio_distrito','fecha_informe','casos_confirmados_totales']]
+    madrid_places = df_madrid[df_madrid['municipio_distrito'].str.startswith('Madrid')]['municipio_distrito'].unique()
+
+    # Aggregate All Madrid places
+    # TODO
+
+    # Aggregate Madrid city places
+    # TODO
+
+    # We already have Madrid reported cases. So let's concat the Dataframes
+    # TODO
+
+    pass
+
 def filterCovidData(df_covid):
     maxDate = df_covid['fecha_informe'].unique().max()
     df_covid_filtered = df_covid[df_covid['fecha_informe']==maxDate]
