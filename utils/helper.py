@@ -45,15 +45,15 @@ def loadCovidData(dataset='muni', prefix=''):
     df.drop(labels=[], axis=1, inplace=True)
     return df
 
-def loadCovidDataSpain():
+def loadCovidDataSpain(prefix=''):
     #url="https://datos.comunidad.madrid/catalogo/dataset/7da43feb-8d4d-47e0-abd5-3d022d29d09e/resource/b2a3a3f9-1f82-42c2-89c7-cbd3ef801412/download/covid19_tia_muni_y_distritos.csv"
     #df = pd.read_csv(url, sep=';', encoding='latin-1')
-    df = pd.read_csv('../datasets/covid19_estado.csv', sep=',', encoding='latin-1')
+    df = pd.read_csv(prefix + 'datasets/covid19_estado.csv', sep=',', encoding='latin-1')
     # fixing data
     df_madrid = df[df['CCAA'] == 'MD']
     df_madrid['fecha'] = df_madrid['FECHA'].apply(lambda x: datetime.datetime.strptime(x, '%d/%m/%Y'))
     df_madrid['fecha_str'] = df_madrid['fecha'].apply(lambda x: '2020/' + str(x.month).zfill(2) + "/" + str(x.day).zfill(2) + " 09:00:00")
-    df_madrid['municipio_distrito'] = df_madrid['CCAA'].apply(lambda x: 'Reporte Madrid')
+    df_madrid['municipio_distrito'] = df_madrid['CCAA'].apply(lambda x: 'Reporte oficial')
     df_madrid_result = df_madrid[['municipio_distrito','fecha_str','PCR+']]
     df_madrid_result.columns = ['municipio_distrito','fecha_informe','casos_confirmados_totales']
     return df_madrid_result
@@ -197,14 +197,14 @@ def plotPlaces(df, places, agg_factor=1, dataset='muni', plot=True):
             if plot:
                 plt.subplot(N,2,index+1)
                 plt.title(p + ' (Incremento por día)')
-                plt.bar(x_date_dia_red,y_dia_red, width=0.2)
+                plt.bar(x_date_dia_red,y_dia_red, width=0.7)
                 plt.xticks(rotation=15)
                 index+=2
             else:
                 df2 = pd.DataFrame(data={'municipio_distrito':([p]*len(x_dia_red)),'fecha':x_date_dia_red,'fecha_str':x_dia_red,'Contagios diarios':y_dia_red})
                 df2_total = pd.concat([df2_total,df2])
-        except:
-            print('Error en ' + p + '!!')
+        except Exception as e:
+            print('Error en ' + p + '!!: ' + str(e))
     if not plot:
         return df1_total,df2_total
 

@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import altair as alt
 import streamlit as st
-from utils.helper import loadCovidData, plotPlaces, transformCoordenate, checkPositions, sample_coordinates, top_places
+from utils.helper import loadCovidData, loadCovidDataSpain, getMadridTotalData, plotPlaces, transformCoordenate, checkPositions, sample_coordinates, top_places
 from utils.RNN import RNN, getPlaceSerie
 
 prefix = os.environ['APP_PATH']
@@ -19,7 +19,11 @@ if sys.version_info[0] < 3:
 @st.cache(ttl=7200)
 def get_data(dataset='muni'):
     df = loadCovidData(prefix=prefix, dataset=dataset)
-    return df
+    if dataset == 'muni':
+        df_spain = loadCovidDataSpain(prefix=prefix)
+    else:
+        df_spain = pd.DataFrame()
+    return df, df_spain
 
 def drawEvolution(df, places, agg_factor, dataset='muni'):
     data_acc, data_day = plotPlaces(df, places, agg_factor=agg_factor, dataset=dataset, plot=False)
@@ -89,7 +93,7 @@ def handleSeriePrediction(df, place, agg_factor, dataset='muni'):
 # Main Screen
 st.markdown('# Evolución de Covid-19 en la Comunidad de Madrid')
 
-df = get_data()
+df, df_spain = get_data()
 
 # Sidebar Configuration
 st.sidebar.title('Configuración de la Visualización')
@@ -99,11 +103,16 @@ mode = st.sidebar.selectbox("Elija modo de visualizacion:", modes)
 
 if mode == modes[0]:
     st.markdown('## Evolución total de los casos')
-    df_total = df.groupby(by='fecha_informe').sum().reset_index()
-    unique_place = 'Comunidad de Madrid'
-    df_total['municipio_distrito'] = df_total.apply(lambda x: unique_place, axis=1)
-    drawEvolution(df_total, np.array([unique_place]), agg_factor=agg_factor)
-    handleSeriePrediction(df_total, unique_place, agg_factor)
+    df_all_madrid = getMadridTotalData(df, df_spain)
+    places = st.multiselect(
+        "Elija un índice total", list(df_all_madrid['municipio_distrito'].unique()), ['Comunidad de Madrid']
+    )
+    if len(places) > 0:
+        drawEvolution(df_all_madrid, np.array(places), agg_factor=agg_factor)
+        if (len(places)==1):
+            handleSeriePrediction(df_all_madrid, places[0], agg_factor)
+    else:
+        st.warning("Seleccione al menos una opción")
 
     st.markdown('## Situación reciente en las zonas más poblados')
     last_days = st.slider("Casos acumulados en los últimos días:", 1, 14, 1)
@@ -138,7 +147,7 @@ elif mode == modes[3]:
     long_tx, lat_tx = transformCoordenate(long, lat)
     zone = checkPositions([(long_tx,lat_tx)], prefix=prefix)
     if len(zone) > 0:
-        df_zones = get_data(dataset='zonas')
+        df_zones, _ = get_data(dataset='zonas')
         df_amp = pd.DataFrame(
             data=np.array([float(lat), float(long)]).reshape(1,2),
             columns=['lat', 'lon'])
@@ -152,7 +161,7 @@ elif mode == modes[2]:
     st.markdown('## Analice el detalle del municipio')
     city_detail = st.selectbox('Seleccione Municipio para observar el detalle:', list(sample_coordinates.keys()))
     zones = checkPositions(sample_coordinates[city_detail], prefix=prefix)
-    df_zones = get_data(dataset='zonas')
+    df_zones, _ = get_data(dataset='zonas')
     drawEvolution(df_zones, np.array(zones), agg_factor, dataset='zonas')
 
 st.sidebar.markdown('([GitHub](https://github.com/giorbernal/covidmadrid))')
