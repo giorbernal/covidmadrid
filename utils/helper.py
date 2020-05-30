@@ -52,7 +52,7 @@ def loadCovidDataSpain():
     # fixing data
     df_madrid = df[df['CCAA'] == 'MD']
     df_madrid['fecha'] = df_madrid['FECHA'].apply(lambda x: datetime.datetime.strptime(x, '%d/%m/%Y'))
-    df_madrid['fecha_str'] = df_madrid['fecha'].apply(lambda x: str(x.month).zfill(2) + "/" + str(x.day).zfill(2))
+    df_madrid['fecha_str'] = df_madrid['fecha'].apply(lambda x: '2020/' + str(x.month).zfill(2) + "/" + str(x.day).zfill(2) + " 09:00:00")
     df_madrid['municipio_distrito'] = df_madrid['CCAA'].apply(lambda x: 'Reporte Madrid')
     df_madrid_result = df_madrid[['municipio_distrito','fecha_str','PCR+']]
     df_madrid_result.columns = ['municipio_distrito','fecha_informe','casos_confirmados_totales']
@@ -63,15 +63,20 @@ def getMadridTotalData(df_madrid, df_spain):
     madrid_places = df_madrid[df_madrid['municipio_distrito'].str.startswith('Madrid')]['municipio_distrito'].unique()
 
     # Aggregate All Madrid places
-    # TODO
+    df_total = df_madrid.groupby(by='fecha_informe').sum().reset_index()
+    total_place = 'Comunidad de Madrid'
+    df_total['municipio_distrito'] = df_total.apply(lambda x: total_place, axis=1)
 
     # Aggregate Madrid city places
-    # TODO
+    df_city = df_madrid[df_madrid['municipio_distrito'].str.startswith('Madrid')].groupby(by='fecha_informe').sum().reset_index()
+    city_place = 'Ciudad de Madrid'
+    df_city['municipio_distrito'] = df_total.apply(lambda x: city_place, axis=1)
 
     # We already have Madrid reported cases. So let's concat the Dataframes
-    # TODO
+    df_result = pd.concat(objs=[df_total[['municipio_distrito','fecha_informe','casos_confirmados_totales']],df_city[['municipio_distrito','fecha_informe','casos_confirmados_totales']],df_spain])
 
-    pass
+    return df_result
+
 
 def filterCovidData(df_covid):
     maxDate = df_covid['fecha_informe'].unique().max()
