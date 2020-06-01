@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import altair as alt
 import streamlit as st
-from utils.helper import loadCovidData, loadCovidDataSpain, getMadridTotalData, plotPlaces, transformCoordenate, checkPositions, sample_coordinates, top_places
+from utils.helper import loadCovidData, loadCovidDataSpain, getMadridTotalData, getLastUpdate, plotPlaces, transformCoordenate, checkPositions, sample_coordinates, top_places
 from utils.RNN import RNN, getPlaceSerie
 
 prefix = os.environ['APP_PATH']
@@ -104,6 +104,8 @@ mode = st.sidebar.selectbox("Elija modo de visualizacion:", modes)
 if mode == modes[0]:
     st.markdown('## Evolución total de los casos')
     df_all_madrid = getMadridTotalData(df, df_spain)
+    last_update = getLastUpdate(df_all_madrid)
+    st.text('última actualización: ' + str(last_update))
     places = st.multiselect(
         "Elija un índice total", list(df_all_madrid['municipio_distrito'].unique()), ['Comunidad de Madrid']
     )

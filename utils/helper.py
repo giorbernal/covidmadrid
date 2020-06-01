@@ -10,7 +10,7 @@ from shapely.geometry import shape # shape() is a function to convert geo object
 from pyproj import Proj, transform
 
 __datasetmap__={'muni':['datasets/covid19_tia_muni_y_distritos.csv','municipio_distrito'],
-            'zonas':['datasets/covid19_tia_zonas_basicas_salud.csv','zona_basica_salud']
+            'zonas':['datasets/covid19_tia_zonas_basicas_salud.csv','municipio_distrito']
 }
 
 top_places = np.array(['Madrid-Retiro', 'Madrid-Salamanca', 'Madrid-Centro',
@@ -160,6 +160,9 @@ def __litedate__(dates):
 
 def __litedateToDatetime__(dates):
     return [datetime.datetime.strptime('2020/' + x, "%Y/%m/%d") for x in dates]
+
+def getLastUpdate(df):
+    return datetime.datetime.strptime(df[df['municipio_distrito'] == 'Comunidad de Madrid']['fecha_informe'].max(), '%Y/%m/%d %H:%M:%S')
 
 def plotPlaces(df, places, agg_factor=1, dataset='muni', plot=True):
     if not plot:
