@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ from shapely.geometry import shape # shape() is a function to convert geo object
 from pyproj import Proj, transform
 
 __datasetmap__={'muni':['datasets/covid19_tia_muni_y_distritos.csv','municipio_distrito'],
-            'zonas':['datasets/covid19_tia_zonas_basicas_salud.csv','municipio_distrito']
+            'zonas':['datasets/covid19_tia_zonas_basicas_salud.csv','zona_basica_salud']
 }
 
 top_places = np.array(['Madrid-Retiro', 'Madrid-Salamanca', 'Madrid-Centro',
@@ -38,7 +39,7 @@ def loadCovidData(dataset='muni', prefix=''):
 
     df = pd.read_csv(filename, sep=';', encoding='latin-1')
     # fixing data
-    df['place_column_aux']=df[place_column].apply(lambda x: x.strip())
+    df['place_column_aux']=df[place_column].apply(lambda x: x.strip() if type(x) == str else '')
     df['tasa_incidencia_acumulada_total_float']=df['tasa_incidencia_acumulada_total'].str.replace(',','.').astype(float)
     df.drop(labels=[place_column,'tasa_incidencia_acumulada_total'],axis=1, inplace=True)
     df.columns=['fecha_informe', 'casos_confirmados_ultimos_14dias','tasa_incidencia_acumulada_ultimos_14dias', 'casos_confirmados_totales','codigo_geometria', place_column,'tasa_incidencia_acumulada_total_float']
