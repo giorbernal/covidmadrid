@@ -10,8 +10,10 @@ from shapely.geometry import Point # Point class
 from shapely.geometry import shape # shape() is a function to convert geo objects through the interface
 from pyproj import Proj, transform
 
-__datasetmap__={'muni':['datasets/covid19_tia_muni_y_distritos.csv','municipio_distrito'],
-            'zonas':['datasets/covid19_tia_zonas_basicas_salud.csv','zona_basica_salud']
+__datasetmap__={'muni':['datasets/covid19_tia_muni_y_distritos.csv','municipio_distrito',[]],
+            'muni_s':['datasets/covid19_tia_muni_y_distritos_s.csv','municipio_distrito',['casos_confirmados_activos_ultimos_14dias','tasa_incidencia_acumulada_activos_ultimos_14dias']],
+            'zonas':['datasets/covid19_tia_zonas_basicas_salud.csv','zona_basica_salud',[]],
+            'zonas_s': ['datasets/covid19_tia_zonas_basicas_salud_s.csv', 'zona_basica_salud',['casos_confirmados_activos_ultimos_14dias','tasa_incidencia_acumulada_activos_ultimos_14dias']]
 }
 
 top_places = np.array(['Madrid-Retiro', 'Madrid-Salamanca', 'Madrid-Centro',
@@ -36,8 +38,10 @@ def loadCovidData(dataset='muni', prefix=''):
     #df = pd.read_csv(url, sep=';', encoding='latin-1')
     filename=prefix + __datasetmap__[dataset][0]
     place_column=__datasetmap__[dataset][1]
+    remove=__datasetmap__[dataset][2]
 
     df = pd.read_csv(filename, sep=';', encoding='latin-1')
+    df.drop(labels=remove, inplace=True, axis=1)
     # fixing data
     df['place_column_aux']=df[place_column].apply(lambda x: x.strip() if type(x) == str else '')
     df['tasa_incidencia_acumulada_total_float']=df['tasa_incidencia_acumulada_total'].str.replace(',','.').astype(float)
@@ -205,7 +209,7 @@ def plotPlaces(df, places, agg_factor=1, dataset='muni', plot=True):
                 plt.xticks(rotation=15)
                 index+=2
             else:
-                df2 = pd.DataFrame(data={'municipio_distrito':([p]*len(x_dia_red)),'fecha':x_date_dia_red,'fecha_str':x_dia_red,'Contagios diarios':y_dia_red})
+                df2 = pd.DataFrame(data={'municipio_distrito':([p]*len(x_dia_red)),'fecha':x_date_dia_red,'fecha_str':x_dia_red,'Contagios semanales':y_dia_red})
                 df2_total = pd.concat([df2_total,df2])
         except Exception as e:
             print('Error en ' + p + '!!: ' + str(e))

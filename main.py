@@ -17,18 +17,18 @@ if sys.version_info[0] < 3:
     sys.setdefaultencoding("utf-8")
 
 @st.cache(ttl=7200)
-def get_data(dataset='muni'):
+def get_data(dataset='muni_s'):
     df = loadCovidData(prefix=prefix, dataset=dataset)
-    if dataset == 'muni':
+    if dataset.startswith('muni'):
         df_spain = loadCovidDataSpain(prefix=prefix)
     else:
         df_spain = pd.DataFrame()
     return df, df_spain
 
-def drawEvolution(df, places, agg_factor, dataset='muni'):
+def drawEvolution(df, places, agg_factor, dataset='muni_s'):
     data_acc, data_day = plotPlaces(df, places, agg_factor=agg_factor, dataset=dataset, plot=False)
     data_acc_pivoted = data_acc.pivot(index='fecha_str', columns='municipio_distrito', values='Contagios totales')
-    data_data_day_pivoted = data_day.pivot(index='fecha_str', columns='municipio_distrito', values='Contagios diarios')
+    data_data_day_pivoted = data_day.pivot(index='fecha_str', columns='municipio_distrito', values='Contagios semanales')
 
     st.markdown("### Contagios totales")
 
@@ -44,7 +44,7 @@ def drawEvolution(df, places, agg_factor, dataset='muni'):
     )
     st.altair_chart(chart, use_container_width=True)
 
-    st.markdown("### Contagios por día")
+    st.markdown("### Contagios por semana")
 
     st.write(data_data_day_pivoted.T)
     chart = (
@@ -52,43 +52,44 @@ def drawEvolution(df, places, agg_factor, dataset='muni'):
          .mark_line()
          .encode(
              x="fecha:T",
-             y="Contagios diarios:Q",
+             y="Contagios semanales:Q",
              color="municipio_distrito:N",
          )
      )
     st.altair_chart(chart, use_container_width=True)
 
-def handleSeriePrediction(df, place, agg_factor, dataset='muni'):
-    if st.checkbox("Análisis predictivo"):
-        serie = getPlaceSerie(df, place, agg_factor, dataset)
-        st.markdown("#### Parámetros de la RNN")
-        window_size = st.number_input(label='window size (2-14)', min_value=2, max_value=14, value=7)
-        lstm_units = st.number_input(label='LSTM units (1-64)', min_value=1, max_value=64, value=8)
-        epochs = st.number_input(label='epochs (10-200)', min_value=10, max_value=200, value=150)
-
-        if st.button('Predicción'):
-            with st.spinner('Entrenando modelo ...'):
-                rnn = RNN(data=serie, window_size=window_size, lstm_units=lstm_units, epochs=epochs)
-                history, score = rnn.train(verbose=2)
-            st.success('Hecho!')
-
-            # plot history
-            st.markdown("#### Curvas de aprendizaje")
-            plt.plot(history.history['loss'], label='train')
-            plt.plot(history.history['val_loss'], label='test')
-            plt.legend()
-            st.pyplot()
-
-            st.markdown("#### Realidad Vs Modelo Predictivo")
-            y, y_pred = rnn.getAllPredictions()
-            plt.plot(y, 'b', label='Realidad')
-            plt.plot(y_pred, 'r', label='Modelo Predictivo')
-            plt.legend()
-            st.pyplot()
-            st.markdown("#### Predicción a 30 dias")
-            preds = rnn.predict(30)
-            plt.plot(preds)
-            st.pyplot()
+def handleSeriePrediction(df, place, agg_factor, dataset='muni_s'):
+    pass
+    # if st.checkbox("Análisis predictivo"):
+    #     serie = getPlaceSerie(df, place, agg_factor, dataset)
+    #     st.markdown("#### Parámetros de la RNN")
+    #     window_size = st.number_input(label='window size (2-14)', min_value=2, max_value=14, value=7)
+    #     lstm_units = st.number_input(label='LSTM units (1-64)', min_value=1, max_value=64, value=8)
+    #     epochs = st.number_input(label='epochs (10-200)', min_value=10, max_value=200, value=150)
+    #
+    #     if st.button('Predicción'):
+    #         with st.spinner('Entrenando modelo ...'):
+    #             rnn = RNN(data=serie, window_size=window_size, lstm_units=lstm_units, epochs=epochs)
+    #             history, score = rnn.train(verbose=2)
+    #         st.success('Hecho!')
+    #
+    #         # plot history
+    #         st.markdown("#### Curvas de aprendizaje")
+    #         plt.plot(history.history['loss'], label='train')
+    #         plt.plot(history.history['val_loss'], label='test')
+    #         plt.legend()
+    #         st.pyplot()
+    #
+    #         st.markdown("#### Realidad Vs Modelo Predictivo")
+    #         y, y_pred = rnn.getAllPredictions()
+    #         plt.plot(y, 'b', label='Realidad')
+    #         plt.plot(y_pred, 'r', label='Modelo Predictivo')
+    #         plt.legend()
+    #         st.pyplot()
+    #         st.markdown("#### Predicción a 30 dias")
+    #         preds = rnn.predict(30)
+    #         plt.plot(preds)
+    #         st.pyplot()
 
 # Main Screen
 st.markdown('# Evolución de Covid-19 en la Comunidad de Madrid')
@@ -97,7 +98,9 @@ df, df_spain = get_data()
 
 # Sidebar Configuration
 st.sidebar.title('Configuración de la Visualización')
-agg_factor = st.sidebar.slider("Agrupación de datos por N días:", 1, 7, 1)
+# with muni_s dataset data comes already grouped each 7 days
+#agg_factor = st.sidebar.slider("Agrupación de datos por N días:", 1, 7, 1)
+agg_factor = 1
 
 mode = st.sidebar.selectbox("Elija modo de visualizacion:", modes)
 
@@ -117,16 +120,16 @@ if mode == modes[0]:
         st.warning("Seleccione al menos una opción")
 
     st.markdown('## Situación reciente en las zonas más poblados')
-    last_days = st.slider("Casos acumulados en los últimos días:", 1, 14, 1)
+    last_weeks = st.slider("Casos acumulados en las últimas semanas:", 1, 4, 1)
     _, df_inc_top = plotPlaces(df, top_places, agg_factor=1, plot=False)
-    dates_to_select = df_inc_top['fecha'].unique()[::-1][0:last_days]
+    dates_to_select = df_inc_top['fecha'].unique()[::-1][0:last_weeks]
     df_inc_top_filtered = df_inc_top[df_inc_top['fecha'].isin(dates_to_select)]
     df_inc_top_filtered_agg = df_inc_top_filtered.groupby(by='municipio_distrito').sum().reset_index()
 
     chart = (
         alt.Chart(df_inc_top_filtered_agg)
         .mark_bar()
-        .encode(y='municipio_distrito', x='Contagios diarios')
+        .encode(y='municipio_distrito', x='Contagios semanales')
     )
     st.altair_chart(chart, use_container_width=True)
 
@@ -149,13 +152,13 @@ elif mode == modes[3]:
     long_tx, lat_tx = transformCoordenate(long, lat)
     zone = checkPositions([(long_tx,lat_tx)], prefix=prefix)
     if len(zone) > 0:
-        df_zones, _ = get_data(dataset='zonas')
+        df_zones, _ = get_data(dataset='zonas_s')
         df_amp = pd.DataFrame(
             data=np.array([float(lat), float(long)]).reshape(1,2),
             columns=['lat', 'lon'])
         st.map(df_amp, zoom=8)
-        drawEvolution(df_zones, np.array(zone), agg_factor, dataset='zonas')
-        handleSeriePrediction(df_zones, zone[0], agg_factor, dataset='zonas')
+        drawEvolution(df_zones, np.array(zone), agg_factor, dataset='zonas_s')
+        handleSeriePrediction(df_zones, zone[0], agg_factor, dataset='zonas_s')
     else:
         st.error('Zona desconocida o fuera de la Comunidad de Madrid!')
 
@@ -163,7 +166,7 @@ elif mode == modes[2]:
     st.markdown('## Analice el detalle del municipio')
     city_detail = st.selectbox('Seleccione Municipio para observar el detalle:', list(sample_coordinates.keys()))
     zones = checkPositions(sample_coordinates[city_detail], prefix=prefix)
-    df_zones, _ = get_data(dataset='zonas')
-    drawEvolution(df_zones, np.array(zones), agg_factor, dataset='zonas')
+    df_zones, _ = get_data(dataset='zonas_s')
+    drawEvolution(df_zones, np.array(zones), agg_factor, dataset='zonas_s')
 
 st.sidebar.markdown('([GitHub](https://github.com/giorbernal/covidmadrid))')
