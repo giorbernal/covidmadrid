@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 import altair as alt
 import streamlit as st
 from utils.helper import loadCovidData, loadCovidDataSpain, getMadridTotalData, getLastUpdate, plotPlaces, transformCoordenate, checkPositions, sample_coordinates, top_places
+from utils.RatePerZone import plotFilteredBy, loadZonesDataSet, ZONES, ZONES_WITH_INDEX, RATE_ACTIVE_14, RATE_14
 from utils.RNN import RNN, getPlaceSerie
 
 prefix = os.environ['APP_PATH']
 
-modes = ['Total','Municipo/Distrito','Detalle de municipio','Mapa']
+modes = ['Total','Municipo/Distrito','Detalle de municipio','Mapa','Incidencia por ZBS']
 
 if sys.version_info[0] < 3:
     reload(sys) # noqa: F821 pylint:disable=undefined-variable
@@ -168,5 +169,65 @@ elif mode == modes[2]:
     zones = checkPositions(sample_coordinates[city_detail], prefix=prefix)
     df_zones, _ = get_data(dataset='zonas_s')
     drawEvolution(df_zones, np.array(zones), agg_factor, dataset='zonas_s')
+
+elif mode == modes[4]:
+    selected = loadZonesDataSet(prefix)
+    st.markdown('## Tasa de incidencia en los últimos 14 dias por ZBS')
+    N = st.slider('Seleccione el numero N de ZBS con mas incidencia:', 40, 150, 60, 10)
+    orderByName = st.checkbox('Ordenar por nombre', False)
+    if orderByName:
+        yParam=ZONES
+    else:
+        yParam=ZONES_WITH_INDEX
+
+    top = plotFilteredBy(selected, RATE_14, N)
+    chart = (
+        alt.Chart(top)
+        .mark_bar()
+        .encode(y=yParam, x=RATE_14)
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+    topActive = plotFilteredBy(selected, RATE_ACTIVE_14, N)
+    chart = (
+        alt.Chart(topActive)
+        .mark_bar()
+        .encode(y=yParam, x=RATE_ACTIVE_14)
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+    restricted = ['Puerta Bonita', 'Vista Alegre', 'Guayaba', 'Doctor Cirajas', 'Gandhi', 'Daroca', 'La Elipa',
+                  'Entrevías', 'Martínez de la Riva', 'San Diego', 'Numancia', 'Peña Prieta', 'Pozo del Tío Raimundo',
+                  'Ángela Uriarte', 'Alcalá de Guadaira', 'Federica Montseny', 'Almendrales', 'Las Calesas', 'Zofío',
+                  'Orcasur', 'San Fermín', 'Villa de Vallecas', 'San Andrés', 'San Cristóbal', 'El Espinillo',
+                  'Los Rosales', 'Alcobendas-Chopera', 'Miraflores', 'Alicante', 'Cuzco', 'Francia', 'Las Margaritas',
+                  'Sánchez Morate', 'Humanes de Madrid', 'San Blas', 'Isabel II', 'Reyes Católicos']
+
+    # Set thresholds
+    last_days_rate_active_th = topActive[RATE_ACTIVE_14].min()
+    last_days_rate_th = top[RATE_14].min()
+    selected_bi = selected[selected[RATE_14] > last_days_rate_th][selected[RATE_ACTIVE_14] > last_days_rate_active_th]
+    selected_bi.reset_index(drop=True, inplace=True)
+
+    st.text(str(selected_bi.shape[0]) + ' zonas se ajustan a los umbrales mínimos a la vez')
+
+    selected_bi['restricted'] = selected_bi[ZONES].apply(lambda x: x in restricted)
+    selected_bi_rest = selected_bi[selected_bi['restricted']]
+    selected_bi_rest.reset_index(drop=True, inplace=True)
+    selected_bi_miss = selected_bi[~selected_bi['restricted']]
+    selected_bi_miss.reset_index(drop=True, inplace=True)
+    st.text('¿Cuantas zones restringidas están en estos umbrales? ' + str(selected_bi_rest.shape[0]))
+
+    fig = plt.figure(figsize=[20, 20])
+    for i in np.arange(selected_bi_rest.shape[0]):
+        plt.annotate(selected_bi_rest[ZONES][i], xy=(selected_bi_rest[RATE_14][i], selected_bi_rest[RATE_ACTIVE_14][i]))
+    for i in np.arange(selected_bi_miss.shape[0]):
+        plt.annotate(selected_bi_miss[ZONES][i], xy=(selected_bi_miss[RATE_14][i], selected_bi_miss[RATE_ACTIVE_14][i]))
+    plt.plot(selected_bi_rest[RATE_14], selected_bi_rest[RATE_ACTIVE_14], 'or', selected_bi_miss[RATE_14],
+             selected_bi_miss[RATE_ACTIVE_14], 'o', mew=5, )
+    plt.legend(['zonas restringidas', 'zonas NO restringidas'])
+    plt.xlabel(RATE_14)
+    plt.ylabel(RATE_ACTIVE_14)
+    st.pyplot(fig)
 
 st.sidebar.markdown('([GitHub](https://github.com/giorbernal/covidmadrid))')
