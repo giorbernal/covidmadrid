@@ -15,3 +15,8 @@ Additionally, in the notebook [TopHealthZones](notebooks/TopHealthZones.ipynb) y
 On the other hand, the framework [streamlit](https://www.streamlit.io) has been used to develop a web application and visualize, in an interactive mode, some of the graphs shown in the previous notebooks. The configuration of this application has been saved in the attached [Dockerfile](Dockerfile). The main code is such application is located [here](main.py).
 
 Additional configuration has been included to deploy the application in [heroku](https://www.heroku.com) environment. You can see the result in this [link](https://covidmadrid.herokuapp.com).
+
+## Tableau
+
+alternatively, this visualizations can be observed from [this](https://public.tableau.com/profile/gior6119#!/vizhome/CovidMadrid/Activo-Total14dias2) tableau visualization.
+
