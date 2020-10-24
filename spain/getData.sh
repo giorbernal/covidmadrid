@@ -8,7 +8,7 @@ PRESS_FILE=$DIR/press.csv
 TEST_URL=https://github.com/datadista/datasets/raw/master/COVID%2019/ccaa_covid19_test_realizados.csv
 TEST_FILE=$DIR/test.csv
 
-CASES_URL=https://github.com/datadista/datasets/raw/master/COVID%2019/ccaa_covid19_test_realizados.csv
+CASES_URL=https://github.com/datadista/datasets/raw/master/COVID%2019/ccaa_covid19_datos_isciii_nueva_serie.csv
 CASES_FILE=$DIR/cases.csv
 
 rm -f $PRESS_FILE
