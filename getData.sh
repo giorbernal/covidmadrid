@@ -11,5 +11,5 @@ ZONES_FILE=$DIR/covid19_tia_zonas_basicas_salud_s.csv
 rm -f $MUNI_FILE
 rm -f $ZONES_FILE
 
-wget $MUNI_URL --no-check-certificat -O $MUNI_FILE
-wget $ZONES_URL --no-check-certificat -O $ZONES_FILE
+wget $MUNI_URL --no-check-certificate --no-cache -O $MUNI_FILE
+wget $ZONES_URL --no-check-certificate --no-cache -O $ZONES_FILE
